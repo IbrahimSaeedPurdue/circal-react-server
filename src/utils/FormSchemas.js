@@ -8,6 +8,10 @@ export const createMeetingSchema = Yup.object().shape({
     month: Yup.number().required(),
     year: Yup.number().required()
   }).required('Meeting date is required'),
+  meetingTimezone: Yup.object({
+    label: Yup.string().required(),
+    value: Yup.string().required()
+  }).typeError('Invalid Timezone'),
   meetingHours: Yup.string().required('Hours duration required'),
   meetingMinutes: Yup.string().required('Minutes duration required'),
   meetingAttendees: Yup.array().of(Yup.object().shape({

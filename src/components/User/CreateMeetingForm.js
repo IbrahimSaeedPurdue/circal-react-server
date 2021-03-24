@@ -4,11 +4,16 @@ import Multiselect from 'react-widgets/lib/Multiselect';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ErrorMessage } from '@hookform/error-message';
+import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
 
 import { createMeetingSchema } from '../../utils/FormSchemas';
 import CalendarPicker from './CalendarPicker.js';
+import TimezoneSelect from 'react-timezone-select';
+import TimeField from 'react-simple-timefield';
 
-const CreateMeetingForm = () => {
+const CreateMeetingForm = (props) => {
   const people = [
     { team: 'circal-dev', name: 'Natasha Rao' },
     { team: 'circal-dev', name: 'Miranda Chai' },
@@ -26,6 +31,8 @@ const CreateMeetingForm = () => {
     defaultValues: {
       meetingTitle: '',
       meetingDate: { day: todayDate.getDate(), month: todayDate.getMonth(), year: todayDate.getFullYear() },
+      meetingTimezone: '',
+      meetingTime: '00:00',
       meetingHours: '',
       meetingMins: '',
       meetingAttendees: [],
@@ -35,6 +42,8 @@ const CreateMeetingForm = () => {
   const onSubmit = data => {
     console.log('Submit: ');
     console.log(data);
+    data.id = uuidv4();
+    props.onCreateMeeting(data);
   };
   const onError = formErrors => {
     console.log('Errors: ');
@@ -52,13 +61,16 @@ const CreateMeetingForm = () => {
     <Container className='animate__animated animate__slideInDown min-vw-100 min-vh-100' fluid>
       <Row className='w-100 h-25 mt-2'>
         <Col className='float-left'>
-          <Button
+          {/* <Button
             className='text-secondary'
             variant='link'
             href='/user_dashboard'
           >
             Cancel
-          </Button>
+          </Button> */}
+          <Link to='user_dashboard'>
+            Cancel
+          </Link>
         </Col>
       </Row>
       <Row className='w-100 h-75'>
@@ -106,6 +118,57 @@ const CreateMeetingForm = () => {
                 </Form.Control.Feedback>
 
               </Form.Group>
+
+              <Form.Group>
+                <Form.Label>Choose Timezone*</Form.Label>
+                <Controller
+                  name='meetingTimezone'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ value, onChange, onBlur }) => (
+                    <TimezoneSelect
+                      className='w-50'
+                      value={value}
+                      onChange={onChange}
+                      onBlur={onBlur}
+                      labelStyle='abbrev'
+                    />
+                  )}
+                />
+                <FormControl hidden name='meetingTimezone' isInvalid={errors && errors.meetingTimezone} />
+                <Form.Control.Feedback type='invalid'>
+                  <ErrorMessage errors={errors} name='meetingTimezone' />
+                </Form.Control.Feedback>
+              </Form.Group>
+
+              <Form.Group>
+                <Form.Label>Pick a time*</Form.Label>
+                <Controller
+                  name='meetingTime'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ value, onChange, onBlur }) => (
+                    <TimeField
+                      value={value}
+                      input={(
+                        <Form.Control
+                          name='meetingTime'
+                          type='text'
+                          className='w-50'
+                        />
+                      )}
+                      onChange={onChange}
+                      onBlur={onBlur}
+                    />
+                  )}
+                />
+                <FormControl hidden name='meetingTime' isInvalid={errors && errors.meetingTime} />
+                <Form.Control.Feedback type='invalid'>
+                  <ErrorMessage errors={errors} name='meetingTime' />
+                </Form.Control.Feedback>
+
+              </Form.Group>
+
               <Form.Group>
                 <Form.Label>Duration of Meeting*</Form.Label>
                 <Form.Group>
@@ -196,4 +259,10 @@ const CreateMeetingForm = () => {
   );
 };
 
-export default CreateMeetingForm;
+const mapDispatchToProps = dispatch => {
+  return {
+    onCreateMeeting: (meetingData) => dispatch({ type: 'ADD_MEETING', newMeetingData: meetingData })
+  };
+};
+
+export default connect(null, mapDispatchToProps)(CreateMeetingForm);
